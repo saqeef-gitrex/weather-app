@@ -1,51 +1,106 @@
+import { useState } from "react";
+
+const hourlyData = [
+    { time: "Now", icon: "☀️", temp: "32°" },
+    { time: "1PM", icon: "☀️", temp: "32°" },
+    { time: "2PM", icon: "☀️", temp: "32°" },
+    { time: "3PM", icon: "☀️", temp: "32°" },
+    { time: "4PM", icon: "☀️", temp: "32°" },
+    { time: "5PM", icon: "☀️", temp: "31°" },
+    { time: "6PM", icon: "☀️", temp: "30°" },
+    { time: "6:08PM", icon: "🌅", temp: "Sunset" },
+    { time: "7PM", icon: "🌙", temp: "29°" },
+    { time: "8PM", icon: "🌙", temp: "27°" },
+    { time: "9PM", icon: "🌙", temp: "27°" },
+    { time: "10PM", icon: "🌙", temp: "26°" }
+];
+
+const weeklyData = [
+    { day: "Today", icon: "☀️", low: "23°", high: "32°", isToday: true },
+    { day: "Sat", icon: "☀️", low: "23°", high: "33°" },
+    { day: "Sun", icon: "☀️", low: "22°", high: "34°" },
+    { day: "Mon", icon: "☀️", low: "23°", high: "35°" },
+    { day: "Tue", icon: "☀️", low: "24°", high: "35°" },
+    { day: "Wed", icon: "☀️", low: "24°", high: "34°" },
+    { day: "Thu", icon: "☀️", low: "24°", high: "34°" },
+    { day: "Fri", icon: "☀️", low: "22°", high: "34°" },
+    { day: "Sat", icon: "☀️", low: "22°", high: "34°" },
+    { day: "Sun", icon: "☀️", low: "22°", high: "34°" }
+];
 
 
-function Maindata({weatherInfo,place}: any) {
-    const hourlyData = [
-        { time: "Now", icon: "☀️", temp: "32°" },
-        { time: "1PM", icon: "☀️", temp: "32°" },
-        { time: "2PM", icon: "☀️", temp: "32°" },
-        { time: "3PM", icon: "☀️", temp: "32°" },
-        { time: "4PM", icon: "☀️", temp: "32°" },
-        { time: "5PM", icon: "☀️", temp: "31°" },
-        { time: "6PM", icon: "☀️", temp: "30°" },
-        { time: "6:08PM", icon: "🌅", temp: "Sunset" },
-        { time: "7PM", icon: "🌙", temp: "29°" },
-        { time: "8PM", icon: "🌙", temp: "27°" },
-        { time: "9PM", icon: "🌙", temp: "27°" },
-        { time: "10PM", icon: "🌙", temp: "26°" }
-    ];
+function Maindata({ weatherInfo, place,cityWeather }: any) {
+    const [search, setSearch] = useState<string>("");
+    const [data, setData] = useState<any[]>([]);
+    const [showDropdown, setShowDropdown] = useState<boolean>(false);
+   
 
-    const weeklyData = [
-        { day: "Today", icon: "☀️", low: "23°", high: "32°", isToday: true },
-        { day: "Sat", icon: "☀️", low: "23°", high: "33°" },
-        { day: "Sun", icon: "☀️", low: "22°", high: "34°" },
-        { day: "Mon", icon: "☀️", low: "23°", high: "35°" },
-        { day: "Tue", icon: "☀️", low: "24°", high: "35°" },
-        { day: "Wed", icon: "☀️", low: "24°", high: "34°" },
-        { day: "Thu", icon: "☀️", low: "24°", high: "34°" },
-        { day: "Fri", icon: "☀️", low: "22°", high: "34°" },
-        { day: "Sat", icon: "☀️", low: "22°", high: "34°" },
-        { day: "Sun", icon: "☀️", low: "22°", high: "34°" }
-    ];
-console.log(weatherInfo)
+    const handleSearchLocation = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearch(value);
+
+        if (value.length < 2) {
+            setData([]);
+            setShowDropdown(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=${import.meta.env.VITE_PLACES_API_KEY
+                }`
+            );
+            const result = await response.json();
+            setData(result.features || []);
+            setShowDropdown(true);
+        } catch (error) {
+            console.error("Error fetching places:", error);
+        }
+    };
+
+    const handleSelectPlace =async (place: any) => {
+        setSearch(place.properties.city);
+        setShowDropdown(false);
+        // You could also pass this back to parent or trigger weather API fetch for this place
+        cityWeather(place.properties.city)
+    };
+
+
     return (
         <main className='flex-1 h-screen p-6 overflow-auto'>
             {/* Top Section */}
             <div className='h-full flex flex-col'>
                 {/* Search Bar */}
-                <div className='flex justify-end mb-6'>
+                <div className='flex justify-end mb-6 relative'>
                     <input
                         type='text'
                         className='bg-black/30 backdrop-blur-sm rounded-lg placeholder-white/70 font-light px-4 py-2 text-white text-sm border border-white/20 w-[240px]'
                         placeholder='🔍 Search'
+                        value={search}
+                        onChange={handleSearchLocation}
+                        onFocus={() => search && setShowDropdown(true)}
                     />
+
+                    {/* Dropdown */}
+                    {showDropdown && data.length > 0 && (
+                        <ul className='absolute top-full mt-2 right-0 w-[240px] bg-black/70 backdrop-blur-md rounded-lg border border-white/20 max-h-60 overflow-y-auto z-10 no-scrollbar'>
+                            {data.map((place, index) => (
+                                <li
+                                    key={index}
+                                    className='px-4 py-2 text-white text-sm cursor-pointer hover:bg-white/10'
+                                    onClick={() => handleSelectPlace(place)}
+                                >
+                                    {place.properties.formatted}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 {/* Main Weather Info */}
                 <div className='flex justify-center mb-8'>
                     <div className='text-white flex flex-col items-center'>
-                        <p className='text-sm opacity-80 mb-2 tracking-wide'>MY LOCATION</p>
+                        <p className='text-sm opacity-80 mb-2 tracking-wide'>LOCATION</p>
                         <p className='text-4xl font-light mb-4'>{place}</p>
                         <p className='text-7xl font-thin mb-4'>{weatherInfo.main.temp.toFixed(0)}°C</p>
                         <p className='text-xl mb-4'>{weatherInfo.weather[0].main}</p>
@@ -59,7 +114,7 @@ console.log(weatherInfo)
                     GRID START
                     6 columns × 4 rows
                    ========================= */}
-                <div className='grid grid-cols-6 grid-rows-4 gap-6'>
+                <div className='grid grid-cols-6 grid-rows-4 gap-6 '>
                     {/* Row 1 (cols 1-4): Weather Description + Hourly Forecast (stacked) */}
                     <div className='col-span-4 row-span-1 space-y-6'>
                         {/* Weather Description */}
@@ -156,17 +211,17 @@ console.log(weatherInfo)
                             <h3 className='text-white/80 text-xs font-medium tracking-wide'>SUNSET</h3>
                         </div>
                         <div className='text-white'>
-                            <p className='text-3xl font-light mb-4'>{new Date(weatherInfo.sys.sunset* 1000).toLocaleString("en-IN",{
-                                hour:"2-digit",
-                                minute :"2-digit",
+                            <p className='text-3xl font-light mb-4'>{new Date(weatherInfo.sys.sunset * 1000).toLocaleString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
                             })}</p>
                             <div className='w-16 h-16 mx-auto mb-3 relative'>
                                 <div className='w-16 h-8 bg-gradient-to-b from-orange-300 to-orange-500 rounded-t-full'></div>
                                 <div className='w-16 h-8 bg-gradient-to-t from-blue-800 to-blue-600 rounded-b-full'></div>
                             </div>
-                            <p className='text-xs opacity-70 text-center'>Sunrise: {new Date(weatherInfo.sys.sunrise * 1000).toLocaleString("en-IN",{
-                                hour:"2-digit",
-                                minute :"2-digit",
+                            <p className='text-xs opacity-70 text-center'>Sunrise: {new Date(weatherInfo.sys.sunrise * 1000).toLocaleString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
                             })}</p>
                         </div>
                     </div>

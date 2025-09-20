@@ -38,38 +38,38 @@ console.error("Error fetching data:", error);
 
 
 // Fetch weather by city name
-// const fetchWeatherByCity = async (city: string) => {
-// try {
-// // Direct Geocoding
-// const geoRes = await fetch(
-// `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${
-// import.meta.env.VITE_WEATHER_API_KEY
-// }`
-// );
-// const geoData = await geoRes.json();
+const fetchWeatherByCity = async (city: string) => {
+try {
+// Direct Geocoding
+const geoRes = await fetch(
+`https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${
+import.meta.env.VITE_WEATHER_API_KEY
+}`
+);
+const geoData = await geoRes.json();
 
 
-// if (geoData.length > 0) {
-// const lat = geoData[0].lat;
-// const lon = geoData[0].lon;
-// setPlace(`${geoData[0].name}, ${geoData[0].country}`);
+if (geoData.length > 0) {
+const lat = geoData[0].lat;
+const lon = geoData[0].lon;
+setPlace(`${geoData[0].name}, ${geoData[0].country}`);
 
 
-// // Now fetch weather for those coords
-// const weatherRes = await fetch(
-// `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${
-// import.meta.env.VITE_WEATHER_API_KEY
-// }`
-// );
-// const weatherData = await weatherRes.json();
-// setTemperature(weatherData.main.temp);
-// } else {
-// alert("City not found");
-// }
-// } catch (error) {
-// console.error("Error fetching city data:", error);
-// }
-// };
+// Now fetch weather for those coords
+const weatherRes = await fetch(
+`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${
+import.meta.env.VITE_WEATHER_API_KEY
+}`
+);
+const weatherData = await weatherRes.json();
+setTemperature(weatherData);
+} else {
+alert("City not found");
+}
+} catch (error) {
+console.error("Error fetching city data:", error);
+}
+};
 
 
 // On mount, get user location
@@ -91,8 +91,8 @@ console.error("Geolocation error:", err);
     <main className="h-screen w-screen flex justify-between relative">
         <img src={bgimage} alt="Background Image" className="h-full w-full object-center"/>
         <section className="absolute w-full h-full flex">
-           <Sidepanel />
-          {temperature&& place&& <Maindata weatherInfo={temperature} place={place}/> }
+           {temperature && place&& <Sidepanel weatherInfo={temperature} place={place}/>}
+          {temperature&& place&& <Maindata weatherInfo={temperature} place={place} cityWeather={fetchWeatherByCity}/> }
         </section>
     </main>
   );
