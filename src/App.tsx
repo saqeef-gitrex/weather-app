@@ -7,10 +7,12 @@ function App() {
   const [place, setPlace] = useState<string>("");
   const [temperature, setTemperature] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Fetch weather by coordinates
   const fetchWeatherByCoords = async (lat: number, lon: number) => {
     try {
+      setIsLoading(true);
       // Reverse Geocoding
       const geoRes = await fetch(
         `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${
@@ -33,12 +35,15 @@ function App() {
     } catch (error) {
       console.error("Error fetching data:", error);
       setErrorMsg("Failed to fetch weather data.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Fetch weather by city name
   const fetchWeatherByCity = async (city: string) => {
     try {
+      setIsLoading(true);
       const geoRes = await fetch(
         `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${
           import.meta.env.VITE_WEATHER_API_KEY
@@ -64,6 +69,8 @@ function App() {
     } catch (error) {
       console.error("Error fetching city data:", error);
       setErrorMsg("Failed to fetch weather data for city.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,15 +107,24 @@ function App() {
           </div>
         )}
 
-        {temperature && place && (
-          <>
-            <Sidepanel weatherInfo={temperature} place={place} />
-            <Maindata
-              weatherInfo={temperature}
-              place={place}
-              cityWeather={fetchWeatherByCity}
-            />
-          </>
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-10">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 flex flex-col items-center gap-4 shadow-xl">
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <p className="text-gray-700 font-medium">Loading weather data...</p>
+            </div>
+          </div>
+        ) : (
+          temperature && place && (
+            <>
+              <Sidepanel weatherInfo={temperature} place={place} />
+              <Maindata
+                weatherInfo={temperature}
+                place={place}
+                cityWeather={fetchWeatherByCity}
+              />
+            </>
+          )
         )}
       </section>
     </main>
