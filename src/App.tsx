@@ -70,17 +70,20 @@ function App() {
 
   // On mount, get user location
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
-        },
-        (err) => {
-          console.error("Geolocation error:", err);
-        }
-      );
-    }
-  }, [])
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
+      },
+      () => {
+        // fallback if user blocks location
+        fetchWeatherByCity("Islamabad");
+      }
+    );
+  } else {
+    fetchWeatherByCity("Islamabad");
+  }
+}, []);
 
 
   return (
