@@ -11,6 +11,7 @@ function App() {
   // Fetch weather by coordinates
   const fetchWeatherByCoords = async (lat: number, lon: number) => {
     try {
+      // Reverse Geocoding
       const geoRes = await fetch(
         `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${
           import.meta.env.VITE_WEATHER_API_KEY
@@ -21,6 +22,7 @@ function App() {
         setPlace(`${geoData[0].name}, ${geoData[0].country}`);
       }
 
+      // Current weather
       const weatherRes = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${
           import.meta.env.VITE_WEATHER_API_KEY
@@ -28,7 +30,6 @@ function App() {
       );
       const weatherData = await weatherRes.json();
       setTemperature(weatherData);
-      setErrorMsg(""); // clear any previous errors
     } catch (error) {
       console.error("Error fetching data:", error);
       setErrorMsg("Failed to fetch weather data.");
@@ -57,7 +58,6 @@ function App() {
         );
         const weatherData = await weatherRes.json();
         setTemperature(weatherData);
-        setErrorMsg("");
       } else {
         alert("City not found");
       }
@@ -67,8 +67,8 @@ function App() {
     }
   };
 
-  // Try getting location
-  const requestLocation = () => {
+  // On mount, ask for location
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -77,20 +77,15 @@ function App() {
         (err) => {
           console.warn("Geolocation error:", err);
           setErrorMsg(
-            "Location is disabled. Please enable location services in your device/browser settings."
+            "Location is disabled. Please enable location services in your device settings. Showing default city."
           );
-          fetchWeatherByCity("Islamabad"); 
+          fetchWeatherByCity("Islamabad"); // fallback
         }
       );
     } else {
       setErrorMsg("Geolocation not supported by your browser.");
       fetchWeatherByCity("Islamabad");
     }
-  };
-
-  // On mount, request location
-  useEffect(() => {
-    requestLocation();
   }, []);
 
   return (
@@ -103,14 +98,8 @@ function App() {
 
       <section className="absolute w-full h-full flex">
         {errorMsg && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500/80 text-white px-4 py-3 rounded-xl text-sm shadow-md z-20 flex items-center gap-3">
-            <span>{errorMsg}</span>
-            <button
-              onClick={requestLocation}
-              className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs"
-            >
-              Retry Location
-            </button>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500/80 text-white px-4 py-2 rounded-xl text-sm shadow-md z-20">
+            {errorMsg}
           </div>
         )}
 

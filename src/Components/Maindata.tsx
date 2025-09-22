@@ -69,13 +69,14 @@ function Maindata({ weatherInfo = mockWeatherInfo, place = "Islamabad", cityWeat
         }
 
         try {
-            // Mock search results for demonstration
-            const mockResults = [
-                { properties: { city: "Karachi", formatted: "Karachi, Sindh, Pakistan" } },
-                { properties: { city: "Lahore", formatted: "Lahore, Punjab, Pakistan" } },
-                { properties: { city: "Islamabad", formatted: "Islamabad, Pakistan" } }
-            ];
-            setData(mockResults);
+             const response = await fetch(
+                `https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=${
+                    import.meta.env.VITE_PLACES_API_KEY
+                }`
+            );
+            const result = await response.json();
+            
+            setData(result.features || []);
             setShowDropdown(true);
         } catch (error) {
             console.error("Error fetching places:", error);
@@ -92,7 +93,7 @@ function Maindata({ weatherInfo = mockWeatherInfo, place = "Islamabad", cityWeat
 
 
     return (
-        <main className='absolute lg:relative flex-1 h-screen p-6 overflow-auto'>
+        <main className='absolute lg:relative flex-1 h-screen p-6 overflow-auto border-2'>
             {/* Top Section */}
             <div className='h-full flex flex-col'>
                 {/* Search Bar */}
