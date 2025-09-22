@@ -76,10 +76,7 @@ function App() {
         },
         (err) => {
           console.warn("Geolocation error:", err);
-          setErrorMsg(
-            "Location is disabled. Please enable location services in your device settings. Showing default city."
-          );
-          fetchWeatherByCity("Islamabad"); // fallback
+          fetchWeatherByCity("Islamabad"); 
         }
       );
     } else {
