@@ -28,8 +28,31 @@ const weeklyData = [
     { day: "Sun", icon: "☀️", low: "22°", high: "34°" }
 ];
 
+// Mock weather data for demonstration
+const mockWeatherInfo = {
+    main: {
+        temp: 32,
+        temp_max: 34,
+        temp_min: 23,
+        feels_like: 35,
+        humidity: 45,
+        pressure: 1013
+    },
+    weather: [
+        { main: "Clear" }
+    ],
+    wind: {
+        speed: 15,
+        gust: 25
+    },
+    sys: {
+        sunrise: 1695622800,
+        sunset: 1695666480
+    },
+    visibility: 10000
+};
 
-function Maindata({ weatherInfo, place,cityWeather }: any) {
+function Maindata({ weatherInfo = mockWeatherInfo, place = "Islamabad", cityWeather }: any) {
     const [search, setSearch] = useState<string>("");
     const [data, setData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(false);
@@ -46,28 +69,30 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
         }
 
         try {
-            const response = await fetch(
-                `https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=${import.meta.env.VITE_PLACES_API_KEY
-                }`
-            );
-            const result = await response.json();
-            setData(result.features || []);
+            // Mock search results for demonstration
+            const mockResults = [
+                { properties: { city: "Karachi", formatted: "Karachi, Sindh, Pakistan" } },
+                { properties: { city: "Lahore", formatted: "Lahore, Punjab, Pakistan" } },
+                { properties: { city: "Islamabad", formatted: "Islamabad, Pakistan" } }
+            ];
+            setData(mockResults);
             setShowDropdown(true);
         } catch (error) {
             console.error("Error fetching places:", error);
         }
     };
 
-    const handleSelectPlace =async (place: any) => {
+    const handleSelectPlace = async (place: any) => {
         setSearch(place.properties.city);
         setShowDropdown(false);
-        // You could also pass this back to parent or trigger weather API fetch for this place
-        cityWeather(place.properties.city)
+        if (cityWeather) {
+            cityWeather(place.properties.city);
+        }
     };
 
 
     return (
-        <main className='flex-1 h-screen p-6 overflow-auto'>
+        <main className='absolute lg:relative flex-1 h-screen p-6 overflow-auto'>
             {/* Top Section */}
             <div className='h-full flex flex-col'>
                 {/* Search Bar */}
@@ -111,12 +136,13 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                 </div>
 
                 {/* =========================
-                    GRID START
-                    6 columns × 4 rows
+                    RESPONSIVE GRID START
+                    Small/Medium: 3 columns
+                    Large+: 6 columns × 4 rows
                    ========================= */}
-                <div className='grid grid-cols-6 grid-rows-4 gap-6 '>
+                <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 grid-rows-auto lg:grid-rows-4 gap-6'>
                     {/* Row 1 (cols 1-4): Weather Description + Hourly Forecast (stacked) */}
-                    <div className='col-span-4 row-span-1 space-y-6'>
+                    <div className='col-span-2 md:col-span-3 lg:col-span-4 lg:row-span-1 space-y-6'>
                         {/* Weather Description */}
                         <div className='bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 w-full'>
                             <p className='text-white/90 text-sm text-center'>
@@ -138,8 +164,8 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         </div>
                     </div>
 
-                    {/* Map area: spans cols 5-6 and rows 1-2 */}
-                    <div className='col-start-5 col-span-2 row-start-1 row-span-2 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
+                    {/* Map area: spans cols 5-6 and rows 1-2 on lg+, full width on sm/md */}
+                    <div className='col-span-2 md:col-span-3 lg:col-start-5 lg:col-span-2 lg:row-start-1 lg:row-span-2 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
                         <div className='flex items-center gap-2 mb-3'>
                             <span className='text-white/60 text-lg'>🗺️</span>
                             <h3 className='text-white/80 text-sm font-medium tracking-wide'>MAPS</h3>
@@ -167,8 +193,8 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         </div>
                     </div>
 
-                    {/* 10-day forecast: columns 1-2, rows 2-4 (col-span 2, row-span 3) */}
-                    <div className='col-start-1 col-span-2 row-start-2 row-span-3 bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10'>
+                    {/* 10-day forecast: columns 1-2, rows 2-4 on lg+, full width on sm/md */}
+                    <div className='col-span-2 md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-2 lg:row-span-3 bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10'>
                         <div className='flex items-center gap-3 mb-6'>
                             <span className='text-white/60 text-lg'>📅</span>
                             <h3 className='text-white/80 text-sm font-medium tracking-wide'>10-DAY FORECAST</h3>
@@ -176,22 +202,22 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         <div className='space-y-4'>
                             {weeklyData.map((day, index) => (
                                 <div key={index} className='flex items-center justify-between text-white py-1'>
-                                    <div className='flex items-center gap-4 flex-1'>
-                                        <p className='text-sm w-16 font-medium'>{day.day}</p>
-                                        <span className='text-xl'>{day.icon}</span>
+                                    <div className='flex items-center gap-2 sm:gap-4 flex-1 min-w-0'>
+                                        <p className='text-xs sm:text-sm w-12 sm:w-16 font-medium flex-shrink-0'>{day.day}</p>
+                                        <span className='text-lg sm:text-xl flex-shrink-0'>{day.icon}</span>
                                     </div>
-                                    <div className='flex items-center gap-4'>
-                                        <p className='text-sm opacity-60 w-8'>{day.low}</p>
-                                        <div className='w-20 h-1.5 bg-gradient-to-r from-blue-400 to-orange-400 rounded-full'></div>
-                                        <p className='text-sm w-8'>{day.high}</p>
+                                    <div className='flex items-center gap-2 sm:gap-4 flex-shrink-0'>
+                                        <p className='text-xs sm:text-sm opacity-60 w-6 sm:w-8'>{day.low}</p>
+                                        <div className='w-12 sm:w-20 h-1.5 bg-gradient-to-r from-blue-400 to-orange-400 rounded-full'></div>
+                                        <p className='text-xs sm:text-sm w-6 sm:w-8'>{day.high}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Row 2 - UV Index (col 3) */}
-                    <div className='col-start-3 col-span-1 row-start-2 row-span-1 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
+                    {/* Row 2 - UV Index (col 4 on lg+, col 1 on sm/md) */}
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-2 lg:row-span-1 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
                         <div className='flex items-center gap-2 mb-3'>
                             <span className='text-white/60 text-lg'>☀️</span>
                             <h3 className='text-white/80 text-xs font-medium tracking-wide'>UV INDEX</h3>
@@ -204,8 +230,8 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         </div>
                     </div>
 
-                    {/* Row 2 - Sunset (col 4) */}
-                    <div className='col-start-4 col-span-1 row-start-2 row-span-1 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
+                    {/* Row 2 - Sunset (col 4 on lg+, col 2 on sm/md) */}
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-2 lg:row-span-1 bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10'>
                         <div className='flex items-center gap-2 mb-3'>
                             <span className='text-white/60 text-lg'>🌅</span>
                             <h3 className='text-white/80 text-xs font-medium tracking-wide'>SUNSET</h3>
@@ -226,9 +252,9 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         </div>
                     </div>
 
-                    {/* Row 3: four small boxes (cols 3-6) */}
+                    {/* Row 3: four small boxes (cols 4-6 on lg+, span across sm/md) */}
                     {/* Wind */}
-                    <div className='col-start-3 col-span-1 row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>💨</span>
                             <h3 className='text-white/80 text-xs font-medium'>WIND</h3>
@@ -245,7 +271,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Waning Crescent */}
-                    <div className='col-start-4 col-span-1 row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>🌙</span>
                             <h3 className='text-white/80 text-xs font-medium'>WANING CRESCENT</h3>
@@ -260,7 +286,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Precipitation */}
-                    <div className='col-start-5 col-span-1 row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-5 lg:row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>🌧️</span>
                             <h3 className='text-white/80 text-xs font-medium'>PRECIPITATION</h3>
@@ -273,7 +299,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Feels Like */}
-                    <div className='col-start-6 col-span-1 row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-6 lg:row-start-3 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>🌡️</span>
                             <h3 className='text-white/80 text-xs font-medium'>FEELS LIKE</h3>
@@ -284,9 +310,9 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                         </div>
                     </div>
 
-                    {/* Row 4: four small boxes (cols 3-6) */}
+                    {/* Row 4: four small boxes (cols 4-6 on lg+, span across sm/md) */}
                     {/* Humidity */}
-                    <div className='col-start-3 col-span-1 row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>💧</span>
                             <h3 className='text-white/80 text-xs font-medium'>HUMIDITY</h3>
@@ -298,7 +324,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Visibility */}
-                    <div className='col-start-4 col-span-1 row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-4 lg:row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>👁️</span>
                             <h3 className='text-white/80 text-xs font-medium'>VISIBILITY</h3>
@@ -310,7 +336,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Pressure */}
-                    <div className='col-start-5 col-span-1 row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-5 lg:row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>📊</span>
                             <h3 className='text-white/80 text-xs font-medium'>PRESSURE</h3>
@@ -332,7 +358,7 @@ function Maindata({ weatherInfo, place,cityWeather }: any) {
                     </div>
 
                     {/* Averages */}
-                    <div className='col-start-6 col-span-1 row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
+                    <div className='col-span-1 lg:col-start-6 lg:row-start-4 bg-black/20 backdrop-blur-sm rounded-xl p-3 border border-white/10'>
                         <div className='flex items-center gap-1 mb-2'>
                             <span className='text-white/60 text-sm'>📈</span>
                             <h3 className='text-white/80 text-xs font-medium'>AVERAGES</h3>
